@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prozon Order Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .upload-zone {
+            background: white;
+            padding: 60px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+            border: 3px dashed #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-zone:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+        }
+        
+        .upload-zone.dragover {
+            background: #e8ecff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .orders-container {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .order-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .order-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .order-body {
+            padding: 25px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            padding: 12px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        
+        .info-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .products-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+        
+        .products-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+        }
+        
+        .products-table tr:hover {
+            background: #f8f9ff;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .status-ok { background: #dcfce7; color: #10b981; }
+        .status-warning { background: #fef3c7; color: #f59e0b; }
+        .status-error { background: #fee2e2; color: #ef4444; }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #764ba2;
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .alert-success {
+            background: #dcfce7;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        
+        .hidden { display: none; }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #667eea;
+        }
+        
+        .missing-ref-form {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid #f59e0b;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Système de Traitement Commandes Prozon</h1>
+            <p>Uploadez vos PDFs, vérifiez les données, ajoutez les références manquantes et exportez vers l'ERP</p>
+            <div class="nav-buttons">
+                <a href="/" class="nav-btn">🏠 Accueil</a>
+                <a href="/references" class="nav-btn">📋 Gérer les Références</a>
+            </div>
+        </div>
+        
+        <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon">📁</div>
+            <h2>Glissez vos PDFs Prozon ici</h2>
+            <p style="margin-top: 10px; color: #666;">ou cliquez pour sélectionner (plusieurs fichiers acceptés)</p>
+            <input type="file" id="fileInput" multiple accept=".pdf" style="display: none;">
+        </div>
+        
+        <div id="processingAlert" class="alert alert-info hidden">
+            <span>⏳</span>
+            <span>Traitement en cours...</span>
+        </div>
+        
+        <div id="ordersContainer" class="orders-container"></div>
+        
+        <div id="actionBar" class="action-bar hidden">
+            <button class="btn btn-primary" onclick="exportToCSV()">
+                💾 Tout est OK - Exporter le CSV
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        let currentOrders = [];
+        
+        // Configuration drag & drop
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadZone.onclick = () => fileInput.click();
+        
+        uploadZone.ondragover = (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        };
+        
+        uploadZone.ondragleave = () => {
+            uploadZone.classList.remove('dragover');
+        };
+        
+        uploadZone.ondrop = (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        };
+        
+        fileInput.onchange = (e) => {
+            handleFiles(e.target.files);
+        };
+        
+        async function handleFiles(files) {
+            const formData = new FormData();
+            
+            for (let file of files) {
+                formData.append('files[]', file);
+            }
+            
+            document.getElementById('processingAlert').classList.remove('hidden');
+            
+            try {
+                // Upload des fichiers
+                const uploadResponse = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const uploadData = await uploadResponse.json();
+                
+                if (!uploadData.success) {
+                    throw new Error('Erreur lors de l\'upload');
+                }
+                
+                // Traitement des PDFs
+                const processResponse = await fetch('/api/process', {
+                    method: 'POST'
+                });
+                
+                const processData = await processResponse.json();
+                
+                if (processData.success) {
+                    currentOrders = processData.orders;
+                    renderOrders(currentOrders);
+                    document.getElementById('actionBar').classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            } finally {
+                document.getElementById('processingAlert').classList.add('hidden');
+            }
+        }
+        
+        function renderOrders(orders) {
+            const container = document.getElementById('ordersContainer');
+            container.innerHTML = '';
+            
+            orders.forEach((order, orderIndex) => {
+                const card = createOrderCard(order, orderIndex);
+                container.appendChild(card);
+            });
+        }
+        
+        function createOrderCard(order, orderIndex) {
+            const card = document.createElement('div');
+            card.className = 'order-card';
+            
+            const hasError = order.produits.some(p => p.statut === 'NON_TROUVEE');
+            const hasWarning = order.produits.some(p => p.statut === 'POIDS_MANQUANT');
+            
+            let poidsTotal = 0;
+            order.produits.forEach(p => {
+                if (p.poids_total) poidsTotal += p.poids_total;
+            });
+            
+            card.innerHTML = `
+                <div class="order-header">
+                    <h2>#${order.numero_commande}</h2>
+                    <span>Réf: ${order.ref_commande} - ${order.date}</span>
+                </div>
+                <div class="order-body">
+                    ${hasError ? '<div class="alert alert-error">❌ Références manquantes - Veuillez les ajouter ci-dessous</div>' : ''}
+                    ${hasWarning ? '<div class="alert alert-warning">⚠️ Poids manquants - Veuillez les compléter</div>' : ''}
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Client</div>
+                            <div class="info-value">${order.adresse.nom_complet}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Adresse</div>
+                            <div class="info-value">${order.adresse.rue}, ${order.adresse.ville}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Téléphone</div>
+                            <div class="info-value">${order.adresse.telephone}</div>
+                        </div>
+                        ${poidsTotal > 0 ? `
+                        <div class="info-item" style="border-left-color: #10b981;">
+                            <div class="info-label">⚖️ Poids Total</div>
+                            <div class="info-value">${poidsTotal.toFixed(1)} kg</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>Qté</th>
+                                <th>Réf Prozon</th>
+                                <th>Réf EHS</th>
+                                <th>Description</th>
+                                <th>Poids (kg)</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${order.produits.map((p, prodIndex) => `
+                                <tr>
+                                    <td><strong>${p.quantite}x</strong></td>
+                                    <td>${p.reference_prozon}</td>
+                                    <td>${p.reference_ehs || '<em>Non trouvée</em>'}</td>
+                                    <td>${p.description || p.nom_produit_ehs || ''}</td>
+                                    <td>${p.poids_total ? p.poids_total.toFixed(1) : 'N/A'}</td>
+                                    <td>
+                                        <span class="status-badge status-${p.statut === 'OK' ? 'ok' : p.statut === 'POIDS_MANQUANT' ? 'warning' : 'error'}">
+                                            ${p.statut === 'OK' ? '✓ OK' : p.statut === 'POIDS_MANQUANT' ? '⚠ Poids manquant' : '❌ Non trouvée'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        ${p.statut !== 'OK' ? `
+                                            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" 
+                                                    onclick="showAddRefForm(${orderIndex}, ${prodIndex}, '${p.reference_prozon}', '${p.description}')">
+                                                ${p.statut === 'NON_TROUVEE' ? '➕ Ajouter' : '✏️ Compléter'}
+                                            </button>
+                                        ` : '✓'}
+                                    </td>
+                                </tr>
+                                <tr id="form-${orderIndex}-${prodIndex}" class="hidden">
+                                    <td colspan="7">
+                                        <div class="missing-ref-form">
+                                            <h4>Ajouter/Modifier la référence ${p.reference_prozon}</h4>
+                                            <div class="form-group">
+                                                <label>Référence EHS *</label>
+                                                <input type="text" id="ref_ehs-${orderIndex}-${prodIndex}" 
+                                                       value="${p.reference_ehs || ''}" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Nom du produit *</label>
+                                                <input type="text" id="nom_produit-${orderIndex}-${prodIndex}" 
+                                                       value="${p.description}" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Poids unitaire (kg) *</label>
+                                                <input type="number" step="0.1" id="poids-${orderIndex}-${prodIndex}" 
+                                                       value="${p.poids_unitaire || ''}" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Prix unitaire (optionnel)</label>
+                                                <input type="number" step="0.01" id="prix-${orderIndex}-${prodIndex}" 
+                                                       value="${p.prix_unitaire || ''}">
+                                            </div>
+                                            <div style="display: flex; gap: 10px;">
+                                                <button class="btn btn-primary" onclick="saveReference(${orderIndex}, ${prodIndex}, '${p.reference_prozon}')">
+                                                    💾 Enregistrer
+                                                </button>
+                                                <button class="btn btn-secondary" onclick="hideAddRefForm(${orderIndex}, ${prodIndex})">
+                                                    ✖ Annuler
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function showAddRefForm(orderIndex, prodIndex, refProzon, description) {
+            document.getElementById(`form-${orderIndex}-${prodIndex}`).classList.remove('hidden');
+        }
+        
+        function hideAddRefForm(orderIndex, prodIndex) {
+            document.getElementById(`form-${orderIndex}-${prodIndex}`).classList.add('hidden');
+        }
+        
+        async function saveReference(orderIndex, prodIndex, refProzon) {
+            const refEhs = document.getElementById(`ref_ehs-${orderIndex}-${prodIndex}`).value;
+            const nomProduit = document.getElementById(`nom_produit-${orderIndex}-${prodIndex}`).value;
+            const poids = document.getElementById(`poids-${orderIndex}-${prodIndex}`).value;
+            const prix = document.getElementById(`prix-${orderIndex}-${prodIndex}`).value;
+            
+            if (!refEhs || !nomProduit || !poids) {
+                alert('Veuillez remplir tous les champs obligatoires (*)');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/references/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ref_prozon: refProzon,
+                        ref_ehs: refEhs,
+                        nom_produit: nomProduit,
+                        poids: parseFloat(poids),
+                        prix: prix ? parseFloat(prix) : null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    
+                    // Retraiter les commandes
+                    const processResponse = await fetch('/api/process', {
+                        method: 'POST'
+                    });
+                    
+                    const processData = await processResponse.json();
+                    
+                    if (processData.success) {
+                        currentOrders = processData.orders;
+                        renderOrders(currentOrders);
+                    }
+                } else {
+                    alert('❌ Erreur: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Erreur: ' + error.message);
+            }
+        }
+        
+        async function exportToCSV() {
+            if (currentOrders.length === 0) {
+                alert('Aucune commande à exporter');
+                return;
+            }
+            
+            // Vérifier qu'il n'y a plus d'erreurs
+            const hasErrors = currentOrders.some(order => 
+                order.produits.some(p => p.statut !== 'OK')
+            );
+            
+            if (hasErrors) {
+                if (!confirm('⚠️ Certaines commandes ont encore des problèmes. Exporter quand même ?')) {
+                    return;
+                }
+            }
+            
+            try {
+                const response = await fetch('/api/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orders: currentOrders
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Télécharger le fichier
+                    window.location.href = '/download/' + data.file;
+                    alert('✅ Export CSV créé avec succès !');
+                } else {
+                    alert('❌ Erreur lors de l\'export: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Erreur: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
